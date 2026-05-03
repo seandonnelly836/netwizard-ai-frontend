@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- טעינת פונט Heebo כפי שהגדרנו ב-Design System -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@100..900&display=swap" rel="stylesheet">
+    
+    <title>NetWizard AI | Sean's Dashboard</title>
+    
+    <style>
+      /* עיצוב בסיסי כדי למנוע קפיצות בטעינה */
+      body {
+        margin: 0;
+        font-family: 'Heebo', sans-serif;
+        background-color: #F8FAFC;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- זהו האלמנט שבו React תציג את כל האפליקציה -->
+    <div id="root"></div>
+    
+    <!-- אם אתה משתמש ב-Vite, השורה הזו מקשרת לקוד ה-JavaScript הראשי -->
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
