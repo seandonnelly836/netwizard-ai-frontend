@@ -1,5 +1,6 @@
-import { checkServerHealth } from './services/api';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { checkServerHealth } from './services/api';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Dashboard from './pages/Dashboard';
@@ -21,28 +22,6 @@ function App() {
         <Footer />
       </div>
     </Router>
-  );
-}
-
-export default App;
-
-import React, { useEffect } from 'react';
-import { checkServerHealth } from './services/api';
-// שאר האימפורטים שלך (Router, Navbar, etc...)
-
-function App() {
-  useEffect(() => {
-    // הרצת בדיקת החיבור לשרת
-    checkServerHealth().then(data => {
-      console.log('Backend response inside React:', data);
-    }).catch(err => {
-      console.log('Failed to connect from React:', err);
-    });
-  }, []);
-
-  return (
-    
-    <div>פרויקט NetWizard AI המאובטח</div>
   );
 }
 
