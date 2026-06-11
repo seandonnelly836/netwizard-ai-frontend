@@ -2,11 +2,11 @@
 
 AI-powered network configuration assistant for MikroTik, Ubiquiti, and TP-Link devices.
 
-Built with React + Vite (frontend) and an Express proxy (backend) that keeps your Anthropic API key secure server-side.
+Built with React + Vite (frontend) and a serverless proxy that keeps your Anthropic API key secure.
 
 ---
 
-## Quick Start
+## Local Development
 
 ### 1. Install dependencies
 
@@ -14,7 +14,7 @@ Built with React + Vite (frontend) and an Express proxy (backend) that keeps you
 # Frontend
 npm install
 
-# Proxy server
+# Express proxy (local dev only)
 cd server && npm install && cd ..
 ```
 
@@ -33,9 +33,22 @@ Get a key at: https://console.anthropic.com/
 npm run dev
 ```
 
-This starts both the Vite dev server (port 5173) and the Express proxy (port 3001) together.
+Opens at http://localhost:5173. Vite proxies `/api` to the Express server on `:3001`.
 
-Open http://localhost:5173
+---
+
+## Deploy to Vercel
+
+### 1. Push to GitHub, then import the repo at vercel.com/new
+
+### 2. Add your API key in Vercel
+Dashboard → Project → Settings → Environment Variables
+```
+ANTHROPIC_API_KEY = sk-ant-...
+```
+
+### 3. Deploy
+Vercel auto-deploys on every push to `main`. The `api/chat.js` file is served as a serverless function — no Express server needed in production.
 
 ---
 
@@ -43,25 +56,18 @@ Open http://localhost:5173
 
 ```
 netwizard-ai-frontend/
+├── api/
+│   └── chat.js           # Vercel serverless function (production)
+├── server/
+│   ├── index.js          # Express proxy (local dev)
+│   ├── .env              # ANTHROPIC_API_KEY — never committed
+│   └── .env.example
 ├── src/
 │   ├── components/       # Navbar, Footer
 │   ├── pages/            # Dashboard, Wizard, History
 │   ├── services/api.js   # Calls /api/chat
 │   └── App.jsx
-├── server/
-│   ├── index.js          # Express proxy → Anthropic API
-│   ├── .env              # ANTHROPIC_API_KEY (never committed)
-│   └── .env.example      # Template
-├── vite.config.js        # Proxies /api to :3001 in dev
+├── vercel.json           # Build + routing config
+├── vite.config.js        # Proxies /api → :3001 in dev
 └── package.json
 ```
-
----
-
-## Deploying
-
-### Vercel
-Convert `server/index.js` to `api/chat.js` as a Vercel serverless function, and set `ANTHROPIC_API_KEY` in the Vercel dashboard under Environment Variables.
-
-### Railway / Render
-Deploy the `server/` folder as a Node service. Set `ANTHROPIC_API_KEY` as an environment variable. Update the frontend's `vite.config.js` proxy target (or set `VITE_API_URL` for production builds) to point at your deployed server URL.
