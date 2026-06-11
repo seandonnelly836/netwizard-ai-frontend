@@ -25,3 +25,25 @@ function App() {
 }
 
 export default App;
+
+import React, { useEffect } from 'react';
+import { checkServerHealth } from './services/api';
+// שאר האימפורטים שלך (Router, Navbar, etc...)
+
+function App() {
+  useEffect(() => {
+    // הרצת בדיקת החיבור לשרת
+    checkServerHealth().then(data => {
+      console.log('Backend response inside React:', data);
+    }).catch(err => {
+      console.log('Failed to connect from React:', err);
+    });
+  }, []);
+
+  return (
+    // הקוד של ה-Router והמבנה הקיים שלך...
+    <div>פרויקט NetWizard AI המאובטח</div>
+  );
+}
+
+export default App;
