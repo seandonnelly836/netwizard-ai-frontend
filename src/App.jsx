@@ -1,4 +1,4 @@
-import { checkServerHealth } from './pages/services/api';
+import { checkServerHealth } from './services/api';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
