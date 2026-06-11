@@ -1,4 +1,4 @@
-import React from 'react';
+import { checkServerHealth } from './pages/services/api';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -41,7 +41,7 @@ function App() {
   }, []);
 
   return (
-    // הקוד של ה-Router והמבנה הקיים שלך...
+    
     <div>פרויקט NetWizard AI המאובטח</div>
   );
 }
