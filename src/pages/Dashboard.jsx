@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const INITIAL_NETWORKS = [
@@ -13,6 +13,26 @@ const DEVICE_OPTIONS = [
 ];
 
 const STATUS_OPTIONS = ['Active', 'Warning'];
+
+const STORAGE_KEY = 'netwizard-networks';
+
+const loadNetworks = () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch (e) {
+    console.error('Failed to load networks from storage', e);
+  }
+  return INITIAL_NETWORKS;
+};
+
+const saveNetworks = (networks) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(networks));
+  } catch (e) {
+    console.error('Failed to save networks to storage', e);
+  }
+};
 
 const S = {
   page: { padding: '2rem', maxWidth: '1100px', margin: '0 auto' },
@@ -105,13 +125,17 @@ const IP_REGEX = /^(\d{1,3}\.){3}\d{1,3}$/;
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [networks, setNetworks] = useState(INITIAL_NETWORKS);
+  const [networks, setNetworks] = useState(loadNetworks);
   const [hovered, setHovered] = useState(null);
   const [hoveredRemove, setHoveredRemove] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ name: '', device: DEVICE_OPTIONS[0], ip: '', status: 'Active' });
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    saveNetworks(networks);
+  }, [networks]);
 
   const activeCount = networks.filter(n => n.status === 'Active').length;
   const warningCount = networks.filter(n => n.status === 'Warning').length;
