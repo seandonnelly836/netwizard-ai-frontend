@@ -12,6 +12,8 @@ const DEVICE_OPTIONS = [
   'Ubiquiti EdgeRouter', 'TP-Link EAP245', 'TP-Link Omada Controller', 'Other',
 ];
 
+const STATUS_OPTIONS = ['Active', 'Warning'];
+
 const S = {
   page: { padding: '2rem', maxWidth: '1100px', margin: '0 auto' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' },
@@ -107,7 +109,8 @@ const Dashboard = () => {
   const [hovered, setHovered] = useState(null);
   const [hoveredRemove, setHoveredRemove] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', device: DEVICE_OPTIONS[0], ip: '' });
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState({ name: '', device: DEVICE_OPTIONS[0], ip: '', status: 'Active' });
   const [errors, setErrors] = useState({});
 
   const activeCount = networks.filter(n => n.status === 'Active').length;
@@ -120,8 +123,16 @@ const Dashboard = () => {
     { label: 'Wizard Sessions', value: '5', icon: '🧠' },
   ];
 
-  const openModal = () => {
-    setForm({ name: '', device: DEVICE_OPTIONS[0], ip: '' });
+  const openAddModal = () => {
+    setEditingId(null);
+    setForm({ name: '', device: DEVICE_OPTIONS[0], ip: '', status: 'Active' });
+    setErrors({});
+    setModalOpen(true);
+  };
+
+  const openEditModal = (net) => {
+    setEditingId(net.id);
+    setForm({ name: net.name, device: net.device, ip: net.ip === '—' ? '' : net.ip, status: net.status });
     setErrors({});
     setModalOpen(true);
   };
@@ -142,15 +153,26 @@ const Dashboard = () => {
       setErrors(errs);
       return;
     }
-    const newNetwork = {
-      id: Date.now(),
-      name: form.name.trim(),
-      device: form.device,
-      status: 'Active',
-      ip: form.ip.trim() || '—',
-      uptime: '0m',
-    };
-    setNetworks(prev => [...prev, newNetwork]);
+
+    if (editingId) {
+      setNetworks(prev => prev.map(n => n.id === editingId ? {
+        ...n,
+        name: form.name.trim(),
+        device: form.device,
+        status: form.status,
+        ip: form.ip.trim() || '—',
+      } : n));
+    } else {
+      const newNetwork = {
+        id: Date.now(),
+        name: form.name.trim(),
+        device: form.device,
+        status: form.status,
+        ip: form.ip.trim() || '—',
+        uptime: '0m',
+      };
+      setNetworks(prev => [...prev, newNetwork]);
+    }
     setModalOpen(false);
   };
 
@@ -196,7 +218,7 @@ const Dashboard = () => {
             style={{ ...S.card, boxShadow: hovered === net.id ? '0 8px 24px rgba(0,0,0,0.1)' : S.card.boxShadow, transform: hovered === net.id ? 'translateY(-2px)' : 'none' }}
             onMouseEnter={() => setHovered(net.id)}
             onMouseLeave={() => setHovered(null)}
-            onClick={() => navigate('/wizard')}
+            onClick={() => openEditModal(net)}
           >
             <button
               style={{ ...S.removeBtn, color: hoveredRemove === net.id ? '#dc2626' : '#cbd5e1' }}
@@ -224,7 +246,7 @@ const Dashboard = () => {
           style={{ ...S.card, border: '2px dashed #cbd5e1', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '130px', color: '#94a3b8', flexDirection: 'column', gap: '8px' }}
           onMouseEnter={e => e.currentTarget.style.borderColor = '#2DD4BF'}
           onMouseLeave={e => e.currentTarget.style.borderColor = '#cbd5e1'}
-          onClick={openModal}
+          onClick={openAddModal}
         >
           <span style={{ fontSize: '1.5rem' }}>+</span>
           <span style={{ fontSize: '0.85rem' }}>Add network</span>
@@ -234,8 +256,10 @@ const Dashboard = () => {
       {modalOpen && (
         <div style={S.overlay} onClick={closeModal}>
           <div style={S.modal} onClick={e => e.stopPropagation()}>
-            <div style={S.modalTitle}>Add a Network</div>
-            <div style={S.modalSub}>Register a new device to monitor and configure.</div>
+            <div style={S.modalTitle}>{editingId ? 'Edit Network' : 'Add a Network'}</div>
+            <div style={S.modalSub}>
+              {editingId ? 'Update the details for this device.' : 'Register a new device to monitor and configure.'}
+            </div>
             <form onSubmit={handleSubmit}>
               <div style={S.field}>
                 <label style={S.label}>Network name</label>
@@ -259,6 +283,16 @@ const Dashboard = () => {
                 </select>
               </div>
               <div style={S.field}>
+                <label style={S.label}>Status</label>
+                <select
+                  style={S.select}
+                  value={form.status}
+                  onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
+                >
+                  {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div style={S.field}>
                 <label style={S.label}>IP address (optional)</label>
                 <input
                   style={S.input}
@@ -269,13 +303,22 @@ const Dashboard = () => {
                 {errors.ip && <div style={S.errorText}>{errors.ip}</div>}
               </div>
               <div style={S.modalActions}>
+                {editingId && (
+                  <button
+                    type="button"
+                    style={{ ...S.btnCancel, color: '#dc2626', borderColor: '#fecaca' }}
+                    onClick={(e) => { removeNetwork(editingId, e); closeModal(); }}
+                  >
+                    Delete
+                  </button>
+                )}
                 <button type="button" style={S.btnCancel} onClick={closeModal}>Cancel</button>
                 <button
                   type="submit"
                   style={{ ...S.btnSubmit, ...(!form.name.trim() ? S.btnSubmitDisabled : {}) }}
                   disabled={!form.name.trim()}
                 >
-                  Add Network
+                  {editingId ? 'Save Changes' : 'Add Network'}
                 </button>
               </div>
             </form>
