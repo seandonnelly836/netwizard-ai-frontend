@@ -42,6 +42,32 @@ const History = () => {
 
   const formatDate = (d) => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
+  const downloadCSV = () => {
+    const headers = ['Date', 'Network', 'Device', 'Issue', 'Status'];
+    const rows = LOGS.map(log => [
+      formatDate(log.date), log.network, log.device, log.issue, log.status,
+    ]);
+
+    const escapeCell = (cell) => {
+      const str = String(cell);
+      return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+    };
+
+    const csv = [headers, ...rows]
+      .map(row => row.map(escapeCell).join(','))
+      .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `netwizard-history-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div style={S.page}>
       <div style={S.header}>
@@ -52,6 +78,7 @@ const History = () => {
         <div style={S.actions}>
           <button
             style={S.btnOutline}
+            onClick={downloadCSV}
             onMouseOver={e => { e.currentTarget.style.backgroundColor = '#f0f4ff'; }}
             onMouseOut={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
           >
