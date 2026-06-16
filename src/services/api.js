@@ -1,24 +1,17 @@
-import axios from 'axios';
+// All requests go to /api/chat — Vite proxies this to localhost:3001 in dev,
+// and your host (Vercel/Railway/etc.) routes it in production.
+export async function sendMessage(messages) {
+  const response = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages }),
+  });
 
+  const data = await response.json();
 
-const API = axios.create({
-
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json'
+  if (!response.ok) {
+    throw new Error(data?.error || `Server error ${response.status}`);
   }
-});
 
-
-export const checkServerHealth = async () => {
-  try {
-    const response = await API.get('/health');
-    return response.data;
-  } catch (error) {
-    console.error('Error connecting to the backend server:', error);
-    throw error;
-  }
-};
-
-export default API;
+  return data.reply;
+}
