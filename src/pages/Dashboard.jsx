@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
+import { useAuth } from '../context/AuthContext';
 
 const INITIAL_NETWORKS = [
   { id: '1', name: 'Home Lab', device: 'MikroTik RBD52G', status: 'Active', ip: '192.168.88.1', uptime: '14d 6h' },
@@ -101,6 +102,7 @@ const statusBadge = (status) => ({
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [networks, setNetworks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hovered, setHovered] = useState(null);
@@ -182,7 +184,7 @@ const Dashboard = () => {
       setNetworks(prev => prev.map(n => n.id === editingId ? { ...n, ...payload } : n));
     } else {
       if (supabase) {
-        const { data } = await supabase.from('networks').insert({ ...payload, uptime: '0m' }).select().single();
+        const { data } = await supabase.from('networks').insert({ ...payload, uptime: '0m', user_id: user.id }).select().single();
         if (data) { setNetworks(prev => [...prev, data]); setModalOpen(false); return; }
       }
       setNetworks(prev => [...prev, { id: Date.now().toString(), ...payload, uptime: '0m' }]);
