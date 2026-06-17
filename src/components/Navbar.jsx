@@ -61,7 +61,6 @@ const Navbar = () => {
 
       {user ? (
         <div style={S.right}>
-          <span style={S.email}>{user.email}</span>
           <div style={S.avatar} title={user.email}>{initial}</div>
           <button
             style={S.logoutBtn}

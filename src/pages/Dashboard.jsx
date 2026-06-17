@@ -205,7 +205,7 @@ const Dashboard = () => {
     <div style={S.page}>
       <div style={S.header}>
         <div>
-          <div style={S.greeting}>Good to see you, Sean 👋</div>
+          <div style={S.greeting}>Good to see you, {user?.email?.split('@')[0] || 'Sean'} 👋</div>
           <div style={S.sub}>Here's an overview of your managed networks.</div>
         </div>
         <button style={S.btnPrimary} onClick={() => navigate('/wizard')}
