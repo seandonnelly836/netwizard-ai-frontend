@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../services/supabase';
 
-const LOGS = [
-  { id: 1, date: '2026-04-26', network: 'Home Lab', device: 'MikroTik RBD52G', issue: 'VLAN setup — Guest network isolation', status: 'Success', statusColor: '#10B981' },
-  { id: 2, date: '2026-04-26', network: 'Office Main', device: 'Ubiquiti UDM', issue: 'Firewall rules — Block inter-VLAN', status: 'CLI Ready', statusColor: '#8B5CF6' },
-  { id: 3, date: '2026-04-24', network: 'Small Cafe Wi-Fi', device: 'TP-Link EAP245', issue: 'Channel optimisation — 5GHz band', status: 'Success', statusColor: '#10B981' },
-  { id: 4, date: '2026-04-22', network: 'Home Lab', device: 'MikroTik RBD52G', issue: 'DHCP server configuration', status: 'Success', statusColor: '#10B981' },
-  { id: 5, date: '2026-04-20', network: 'Office Main', device: 'Ubiquiti UDM', issue: 'IDS/IPS policy review', status: 'In Review', statusColor: '#F59E0B' },
+const FALLBACK_LOGS = [
+  { id: 1, created_at: '2026-04-26', network: 'Home Lab', device: 'MikroTik RBD52G', issue: 'VLAN setup — Guest network isolation', status: 'Success', status_color: '#10B981' },
+  { id: 2, created_at: '2026-04-26', network: 'Office Main', device: 'Ubiquiti UDM', issue: 'Firewall rules — Block inter-VLAN', status: 'CLI Ready', status_color: '#8B5CF6' },
+  { id: 3, created_at: '2026-04-24', network: 'Small Cafe Wi-Fi', device: 'TP-Link EAP245', issue: 'Channel optimisation — 5GHz band', status: 'Success', status_color: '#10B981' },
+  { id: 4, created_at: '2026-04-22', network: 'Home Lab', device: 'MikroTik RBD52G', issue: 'DHCP server configuration', status: 'Success', status_color: '#10B981' },
+  { id: 5, created_at: '2026-04-20', network: 'Office Main', device: 'Ubiquiti UDM', issue: 'IDS/IPS policy review', status: 'In Review', status_color: '#F59E0B' },
 ];
 
 const S = {
@@ -31,32 +32,48 @@ const S = {
   tdDate: { fontSize: '0.8rem', color: '#94a3b8', fontFamily: 'monospace' },
   networkName: { fontWeight: '600', color: '#0f172a' },
   deviceName: { fontSize: '0.78rem', color: '#94a3b8' },
-  issueText: { color: '#475569' },
   badge: (color) => ({ backgroundColor: color + '1a', color, padding: '3px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '600', display: 'inline-block' }),
-  rowHover: { backgroundColor: '#f8fafc' },
+  loadingText: { color: '#64748b', fontSize: '0.9rem', padding: '2rem', textAlign: 'center' },
+  emptyText: { color: '#94a3b8', fontSize: '0.9rem', padding: '3rem', textAlign: 'center' },
 };
 
 const History = () => {
   const navigate = useNavigate();
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [hovered, setHovered] = useState(null);
+
+  useEffect(() => {
+    const load = async () => {
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('sessions')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (!error && data && data.length > 0) {
+          setLogs(data);
+          setLoading(false);
+          return;
+        }
+      }
+      setLogs(FALLBACK_LOGS);
+      setLoading(false);
+    };
+    load();
+  }, []);
 
   const formatDate = (d) => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
   const downloadCSV = () => {
     const headers = ['Date', 'Network', 'Device', 'Issue', 'Status'];
-    const rows = LOGS.map(log => [
-      formatDate(log.date), log.network, log.device, log.issue, log.status,
+    const rows = logs.map(log => [
+      formatDate(log.created_at), log.network, log.device, log.issue, log.status,
     ]);
-
     const escapeCell = (cell) => {
       const str = String(cell);
       return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
     };
-
-    const csv = [headers, ...rows]
-      .map(row => row.map(escapeCell).join(','))
-      .join('\n');
-
+    const csv = [headers, ...rows].map(row => row.map(escapeCell).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -73,59 +90,58 @@ const History = () => {
       <div style={S.header}>
         <div>
           <div style={S.title}>Project Log History</div>
-          <div style={S.sub}>{LOGS.length} wizard sessions recorded</div>
+          <div style={S.sub}>{logs.length} wizard session{logs.length !== 1 ? 's' : ''} recorded</div>
         </div>
         <div style={S.actions}>
-          <button
-            style={S.btnOutline}
-            onClick={downloadCSV}
-            onMouseOver={e => { e.currentTarget.style.backgroundColor = '#f0f4ff'; }}
-            onMouseOut={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-          >
+          <button style={S.btnOutline} onClick={downloadCSV}
+            onMouseOver={e => e.currentTarget.style.backgroundColor = '#f0f4ff'}
+            onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}>
             ↓ Download All
           </button>
-          <button
-            style={S.btnPrimary}
-            onClick={() => navigate('/wizard')}
+          <button style={S.btnPrimary} onClick={() => navigate('/wizard')}
             onMouseOver={e => e.currentTarget.style.opacity = '0.85'}
-            onMouseOut={e => e.currentTarget.style.opacity = '1'}
-          >
+            onMouseOut={e => e.currentTarget.style.opacity = '1'}>
             + New Session
           </button>
         </div>
       </div>
 
-      <table style={S.table}>
-        <thead>
-          <tr>
-            <th style={S.th}>Date</th>
-            <th style={S.th}>Network</th>
-            <th style={S.th}>Issue</th>
-            <th style={S.th}>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {LOGS.map((log) => (
-            <tr
-              key={log.id}
-              style={{ backgroundColor: hovered === log.id ? '#f8fafc' : 'white', cursor: 'pointer' }}
-              onMouseEnter={() => setHovered(log.id)}
-              onMouseLeave={() => setHovered(null)}
-              onClick={() => navigate('/wizard')}
-            >
-              <td style={{ ...S.td, ...S.tdDate }}>{formatDate(log.date)}</td>
-              <td style={S.td}>
-                <div style={S.networkName}>{log.network}</div>
-                <div style={S.deviceName}>{log.device}</div>
-              </td>
-              <td style={{ ...S.td, ...S.issueText }}>{log.issue}</td>
-              <td style={S.td}>
-                <span style={S.badge(log.statusColor)}>{log.status}</span>
-              </td>
+      {loading ? (
+        <div style={S.loadingText}>Loading history…</div>
+      ) : logs.length === 0 ? (
+        <div style={S.emptyText}>No sessions yet — start a conversation in the Wizard to log your first one.</div>
+      ) : (
+        <table style={S.table}>
+          <thead>
+            <tr>
+              <th style={S.th}>Date</th>
+              <th style={S.th}>Network</th>
+              <th style={S.th}>Issue</th>
+              <th style={S.th}>Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {logs.map((log) => (
+              <tr key={log.id}
+                style={{ backgroundColor: hovered === log.id ? '#f8fafc' : 'white', cursor: 'pointer' }}
+                onMouseEnter={() => setHovered(log.id)}
+                onMouseLeave={() => setHovered(null)}
+                onClick={() => navigate('/wizard')}
+              >
+                <td style={{ ...S.td, ...S.tdDate }}>{formatDate(log.created_at)}</td>
+                <td style={S.td}>
+                  <div style={S.networkName}>{log.network}</div>
+                  <div style={S.deviceName}>{log.device}</div>
+                </td>
+                <td style={{ ...S.td, color: '#475569' }}>{log.issue}</td>
+                <td style={S.td}>
+                  <span style={S.badge(log.status_color)}>{log.status}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 };

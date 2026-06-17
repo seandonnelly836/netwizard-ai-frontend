@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../services/supabase';
 
 const INITIAL_NETWORKS = [
-  { id: 1, name: 'Home Lab', device: 'MikroTik RBD52G', status: 'Active', ip: '192.168.88.1', uptime: '14d 6h' },
-  { id: 2, name: 'Office Main', device: 'Ubiquiti UDM', status: 'Warning', ip: '10.0.0.1', uptime: '3d 2h' },
-  { id: 3, name: 'Small Cafe Wi-Fi', device: 'TP-Link EAP245', status: 'Active', ip: '192.168.1.1', uptime: '30d 1h' },
+  { id: '1', name: 'Home Lab', device: 'MikroTik RBD52G', status: 'Active', ip: '192.168.88.1', uptime: '14d 6h' },
+  { id: '2', name: 'Office Main', device: 'Ubiquiti UDM', status: 'Warning', ip: '10.0.0.1', uptime: '3d 2h' },
+  { id: '3', name: 'Small Cafe Wi-Fi', device: 'TP-Link EAP245', status: 'Active', ip: '192.168.1.1', uptime: '30d 1h' },
 ];
 
 const DEVICE_OPTIONS = [
@@ -14,25 +15,7 @@ const DEVICE_OPTIONS = [
 
 const STATUS_OPTIONS = ['Active', 'Warning'];
 
-const STORAGE_KEY = 'netwizard-networks';
-
-const loadNetworks = () => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch (e) {
-    console.error('Failed to load networks from storage', e);
-  }
-  return INITIAL_NETWORKS;
-};
-
-const saveNetworks = (networks) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(networks));
-  } catch (e) {
-    console.error('Failed to save networks to storage', e);
-  }
-};
+const IP_REGEX = /^(\d{1,3}\.){3}\d{1,3}$/;
 
 const S = {
   page: { padding: '2rem', maxWidth: '1100px', margin: '0 auto' },
@@ -44,8 +27,7 @@ const S = {
     padding: '10px 20px', borderRadius: '8px', cursor: 'pointer',
     fontFamily: 'inherit', fontWeight: '600', fontSize: '0.9rem',
     display: 'flex', alignItems: 'center', gap: '6px',
-    boxShadow: '0 2px 8px rgba(30,58,138,0.3)',
-    transition: 'opacity 0.15s',
+    boxShadow: '0 2px 8px rgba(30,58,138,0.3)', transition: 'opacity 0.15s',
   },
   statsRow: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '2rem' },
   statCard: {
@@ -60,8 +42,7 @@ const S = {
   card: {
     backgroundColor: 'white', padding: '1.4rem', borderRadius: '12px',
     boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0',
-    transition: 'box-shadow 0.2s, transform 0.2s', cursor: 'pointer',
-    position: 'relative',
+    transition: 'box-shadow 0.2s, transform 0.2s', cursor: 'pointer', position: 'relative',
   },
   cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' },
   cardName: { fontSize: '1rem', fontWeight: '700', color: '#0f172a' },
@@ -72,15 +53,11 @@ const S = {
   removeBtn: {
     position: 'absolute', top: '10px', right: '10px',
     background: 'none', border: 'none', cursor: 'pointer',
-    color: '#cbd5e1', fontSize: '1rem', lineHeight: 1, padding: '4px',
-    transition: 'color 0.15s',
+    color: '#cbd5e1', fontSize: '1rem', lineHeight: 1, padding: '4px', transition: 'color 0.15s',
   },
-
-  // Modal
   overlay: {
     position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.5)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    zIndex: 1000, padding: '20px',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px',
   },
   modal: {
     backgroundColor: 'white', borderRadius: '14px', padding: '1.75rem',
@@ -113,6 +90,7 @@ const S = {
   },
   btnSubmitDisabled: { opacity: 0.5, cursor: 'not-allowed' },
   errorText: { color: '#dc2626', fontSize: '0.78rem', marginTop: '4px' },
+  loadingText: { color: '#64748b', fontSize: '0.9rem', padding: '2rem', textAlign: 'center' },
 };
 
 const statusBadge = (status) => ({
@@ -121,11 +99,10 @@ const statusBadge = (status) => ({
   color: status === 'Active' ? '#065f46' : '#92400e',
 });
 
-const IP_REGEX = /^(\d{1,3}\.){3}\d{1,3}$/;
-
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [networks, setNetworks] = useState(loadNetworks);
+  const [networks, setNetworks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [hovered, setHovered] = useState(null);
   const [hoveredRemove, setHoveredRemove] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -133,9 +110,27 @@ const Dashboard = () => {
   const [form, setForm] = useState({ name: '', device: DEVICE_OPTIONS[0], ip: '', status: 'Active' });
   const [errors, setErrors] = useState({});
 
+  // Load networks from Supabase or fallback to localStorage
   useEffect(() => {
-    saveNetworks(networks);
-  }, [networks]);
+    const load = async () => {
+      if (supabase) {
+        const { data, error } = await supabase.from('networks').select('*').order('created_at');
+        if (!error && data) { setNetworks(data); setLoading(false); return; }
+      }
+      // Fallback: localStorage
+      try {
+        const stored = localStorage.getItem('netwizard-networks');
+        setNetworks(stored ? JSON.parse(stored) : INITIAL_NETWORKS);
+      } catch { setNetworks(INITIAL_NETWORKS); }
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  // Persist to localStorage as backup
+  useEffect(() => {
+    if (!loading) localStorage.setItem('netwizard-networks', JSON.stringify(networks));
+  }, [networks, loading]);
 
   const activeCount = networks.filter(n => n.status === 'Active').length;
   const warningCount = networks.filter(n => n.status === 'Warning').length;
@@ -170,40 +165,39 @@ const Dashboard = () => {
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
-    if (Object.keys(errs).length) {
-      setErrors(errs);
-      return;
-    }
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+
+    const payload = {
+      name: form.name.trim(),
+      device: form.device,
+      status: form.status,
+      ip: form.ip.trim() || '—',
+    };
 
     if (editingId) {
-      setNetworks(prev => prev.map(n => n.id === editingId ? {
-        ...n,
-        name: form.name.trim(),
-        device: form.device,
-        status: form.status,
-        ip: form.ip.trim() || '—',
-      } : n));
+      if (supabase) await supabase.from('networks').update(payload).eq('id', editingId);
+      setNetworks(prev => prev.map(n => n.id === editingId ? { ...n, ...payload } : n));
     } else {
-      const newNetwork = {
-        id: Date.now(),
-        name: form.name.trim(),
-        device: form.device,
-        status: form.status,
-        ip: form.ip.trim() || '—',
-        uptime: '0m',
-      };
-      setNetworks(prev => [...prev, newNetwork]);
+      if (supabase) {
+        const { data } = await supabase.from('networks').insert({ ...payload, uptime: '0m' }).select().single();
+        if (data) { setNetworks(prev => [...prev, data]); setModalOpen(false); return; }
+      }
+      setNetworks(prev => [...prev, { id: Date.now().toString(), ...payload, uptime: '0m' }]);
     }
     setModalOpen(false);
   };
 
-  const removeNetwork = (id, e) => {
+  const removeNetwork = async (id, e) => {
     e.stopPropagation();
+    if (supabase) await supabase.from('networks').delete().eq('id', id);
     setNetworks(prev => prev.filter(n => n.id !== id));
+    setModalOpen(false);
   };
+
+  if (loading) return <div style={S.loadingText}>Loading your networks…</div>;
 
   return (
     <div style={S.page}>
@@ -212,12 +206,9 @@ const Dashboard = () => {
           <div style={S.greeting}>Good to see you, Sean 👋</div>
           <div style={S.sub}>Here's an overview of your managed networks.</div>
         </div>
-        <button
-          style={S.btnPrimary}
-          onClick={() => navigate('/wizard')}
+        <button style={S.btnPrimary} onClick={() => navigate('/wizard')}
           onMouseOver={e => e.currentTarget.style.opacity = '0.85'}
-          onMouseOut={e => e.currentTarget.style.opacity = '1'}
-        >
+          onMouseOut={e => e.currentTarget.style.opacity = '1'}>
           <span>⚡</span> Open Wizard
         </button>
       </div>
@@ -237,8 +228,7 @@ const Dashboard = () => {
       <div style={S.sectionTitle}>Your Networks</div>
       <div style={S.grid}>
         {networks.map(net => (
-          <div
-            key={net.id}
+          <div key={net.id}
             style={{ ...S.card, boxShadow: hovered === net.id ? '0 8px 24px rgba(0,0,0,0.1)' : S.card.boxShadow, transform: hovered === net.id ? 'translateY(-2px)' : 'none' }}
             onMouseEnter={() => setHovered(net.id)}
             onMouseLeave={() => setHovered(null)}
@@ -250,9 +240,7 @@ const Dashboard = () => {
               onMouseLeave={() => setHoveredRemove(null)}
               onClick={(e) => removeNetwork(net.id, e)}
               title="Remove network"
-            >
-              ✕
-            </button>
+            >✕</button>
             <div style={S.cardTop}>
               <div style={S.cardName}>{net.name}</div>
               <span style={statusBadge(net.status)}>{net.status}</span>
@@ -265,7 +253,6 @@ const Dashboard = () => {
           </div>
         ))}
 
-        {/* Add network */}
         <div
           style={{ ...S.card, border: '2px dashed #cbd5e1', boxShadow: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '130px', color: '#94a3b8', flexDirection: 'column', gap: '8px' }}
           onMouseEnter={e => e.currentTarget.style.borderColor = '#2DD4BF'}
@@ -281,67 +268,37 @@ const Dashboard = () => {
         <div style={S.overlay} onClick={closeModal}>
           <div style={S.modal} onClick={e => e.stopPropagation()}>
             <div style={S.modalTitle}>{editingId ? 'Edit Network' : 'Add a Network'}</div>
-            <div style={S.modalSub}>
-              {editingId ? 'Update the details for this device.' : 'Register a new device to monitor and configure.'}
-            </div>
+            <div style={S.modalSub}>{editingId ? 'Update the details for this device.' : 'Register a new device to monitor and configure.'}</div>
             <form onSubmit={handleSubmit}>
               <div style={S.field}>
                 <label style={S.label}>Network name</label>
-                <input
-                  style={S.input}
-                  value={form.name}
-                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  placeholder="e.g. Garage Workshop"
-                  autoFocus
-                />
+                <input style={S.input} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Garage Workshop" autoFocus />
                 {errors.name && <div style={S.errorText}>{errors.name}</div>}
               </div>
               <div style={S.field}>
                 <label style={S.label}>Device</label>
-                <select
-                  style={S.select}
-                  value={form.device}
-                  onChange={e => setForm(f => ({ ...f, device: e.target.value }))}
-                >
+                <select style={S.select} value={form.device} onChange={e => setForm(f => ({ ...f, device: e.target.value }))}>
                   {DEVICE_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
               <div style={S.field}>
                 <label style={S.label}>Status</label>
-                <select
-                  style={S.select}
-                  value={form.status}
-                  onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
-                >
+                <select style={S.select} value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
                   {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <div style={S.field}>
                 <label style={S.label}>IP address (optional)</label>
-                <input
-                  style={S.input}
-                  value={form.ip}
-                  onChange={e => setForm(f => ({ ...f, ip: e.target.value }))}
-                  placeholder="e.g. 192.168.1.1"
-                />
+                <input style={S.input} value={form.ip} onChange={e => setForm(f => ({ ...f, ip: e.target.value }))} placeholder="e.g. 192.168.1.1" />
                 {errors.ip && <div style={S.errorText}>{errors.ip}</div>}
               </div>
               <div style={S.modalActions}>
                 {editingId && (
-                  <button
-                    type="button"
-                    style={{ ...S.btnCancel, color: '#dc2626', borderColor: '#fecaca' }}
-                    onClick={(e) => { removeNetwork(editingId, e); closeModal(); }}
-                  >
-                    Delete
-                  </button>
+                  <button type="button" style={{ ...S.btnCancel, color: '#dc2626', borderColor: '#fecaca' }}
+                    onClick={(e) => removeNetwork(editingId, e)}>Delete</button>
                 )}
                 <button type="button" style={S.btnCancel} onClick={closeModal}>Cancel</button>
-                <button
-                  type="submit"
-                  style={{ ...S.btnSubmit, ...(!form.name.trim() ? S.btnSubmitDisabled : {}) }}
-                  disabled={!form.name.trim()}
-                >
+                <button type="submit" style={{ ...S.btnSubmit, ...(!form.name.trim() ? S.btnSubmitDisabled : {}) }} disabled={!form.name.trim()}>
                   {editingId ? 'Save Changes' : 'Add Network'}
                 </button>
               </div>
