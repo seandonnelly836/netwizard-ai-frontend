@@ -16,7 +16,7 @@ const DEVICE_OPTIONS = [
 
 const STATUS_OPTIONS = ['Active', 'Warning'];
 
-const IP_REGEX = /^(\d{1,3}\.){3}\d{1,3}$/;
+const IP_REGEX = /^(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
 
 const S = {
   page: { padding: '2rem', maxWidth: '1100px', margin: '0 auto' },
