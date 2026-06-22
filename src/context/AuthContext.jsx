@@ -8,16 +8,20 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Timeout safety net — never hang on loading forever
+    const timeout = setTimeout(() => setLoading(false), 5000);
+
     supabase?.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
+      clearTimeout(timeout);
     });
 
     const { data: { subscription } } = supabase?.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     }) ?? { data: { subscription: { unsubscribe: () => {} } } };
 
-    return () => subscription.unsubscribe();
+    return () => { subscription.unsubscribe(); clearTimeout(timeout); };
   }, []);
 
   const signUp = (email, password) => supabase.auth.signUp({ email, password });
