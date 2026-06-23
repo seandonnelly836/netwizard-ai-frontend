@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import Dashboard from './pages/Dashboard';
 import Wizard from './pages/Wizard';
 import History from './pages/History';
+import Login from './pages/Login';
 import FeedbackWidget from './components/FeedbackWidget';
 
 function App() {
