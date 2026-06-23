@@ -1,14 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import * as Sentry from '@sentry/react'
 import App from './App.jsx'
-
-// Sentry error tracking — production only
-if (import.meta.env.PROD) {
-  Sentry.init({
-    dsn: 'https://12c145ff9717642e126b2ab737bf8401@o4511609444958208.ingest.de.sentry.io/4511609452101712',
-  });
-}
 
 // Microsoft Clarity — production only
 if (import.meta.env.PROD) {
