@@ -32,9 +32,18 @@ export const AuthProvider = ({ children }) => {
     return () => { subscription.unsubscribe(); clearTimeout(timeout); };
   }, []);
 
-  const signUp = (email, password) => supabase.auth.signUp({ email, password });
-  const signIn = (email, password) => supabase.auth.signInWithPassword({ email, password });
-  const signOut = () => supabase.auth.signOut();
+  const signUp = (email, password) => {
+    if (!supabase) return Promise.reject(new Error('Supabase is not configured'));
+    return supabase.auth.signUp({ email, password });
+  };
+  const signIn = (email, password) => {
+    if (!supabase) return Promise.reject(new Error('Supabase is not configured'));
+    return supabase.auth.signInWithPassword({ email, password });
+  };
+  const signOut = () => {
+    if (!supabase) return Promise.resolve();
+    return supabase.auth.signOut();
+  };
 
   return (
     <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut }}>
