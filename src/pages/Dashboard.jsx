@@ -142,7 +142,7 @@ const Dashboard = () => {
     { label: 'Networks', value: String(networks.length), icon: '🖧' },
     { label: 'Active', value: String(activeCount), icon: '✅' },
     { label: 'Warnings', value: String(warningCount), icon: '⚠️' },
-    { label: 'Wizard Sessions', value: '5', icon: '🧠' },
+    { label: 'Sessions', value: '5', icon: '🧠' },
   ];
 
   const openAddModal = () => {
