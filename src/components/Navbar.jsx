@@ -12,7 +12,7 @@ const S = {
   logo: { fontWeight: '800', fontSize: '1.25rem', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '8px' },
   logoAccent: { color: '#2DD4BF' },
   links: { display: 'flex', gap: '4px' },
-  link: { color: 'rgba(255,255,255,0.7)', textDecoration: 'none', padding: '6px 14px', borderRadius: '6px', fontSize: '0.9rem', fontWeight: '500', transition: 'all 0.15s' },
+  link: { color: 'rgba(255,255,255,0.7)', textDecoration: 'none', padding: '6px 10px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: '500', transition: 'all 0.15s' },
   activeLink: { color: 'white', backgroundColor: 'rgba(45,212,191,0.15)', borderBottom: '2px solid #2DD4BF' },
   right: { display: 'flex', alignItems: 'center', gap: '10px' },
   email: { fontSize: '0.82rem', color: 'rgba(255,255,255,0.65)' },

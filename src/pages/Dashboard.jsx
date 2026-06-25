@@ -30,7 +30,7 @@ const S = {
     display: 'flex', alignItems: 'center', gap: '6px',
     boxShadow: '0 2px 8px rgba(30,58,138,0.3)', transition: 'opacity 0.15s',
   },
-  statsRow: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '2rem' },
+  statsRow: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px', marginBottom: '2rem' },
   statCard: {
     backgroundColor: 'white', borderRadius: '10px', padding: '16px 20px',
     border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '14px',
@@ -205,7 +205,7 @@ const Dashboard = () => {
     <div style={S.page}>
       <div style={S.header}>
         <div>
-          <div style={S.greeting}>Good to see you, {user?.email?.split('@')[0] || 'Sean'} 👋</div>
+          <div style={S.greeting}>Good to see you, Sean 👋</div>
           <div style={S.sub}>Here's an overview of your managed networks.</div>
         </div>
         <button style={S.btnPrimary} onClick={() => navigate('/wizard')}
