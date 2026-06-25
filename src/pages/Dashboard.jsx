@@ -33,10 +33,10 @@ const S = {
   },
   statsRow: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px', marginBottom: '2rem' },
   statCard: {
-    backgroundColor: 'white', borderRadius: '10px', padding: '16px 20px',
-    border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '14px',
+    backgroundColor: 'white', borderRadius: '10px', padding: '14px 16px',
+    border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '10px',
   },
-  statIcon: { fontSize: '1.4rem' },
+  statIcon: { fontSize: '1.2rem', flexShrink: 0 },
   statValue: { fontSize: '1.5rem', fontWeight: '700', color: '#0f172a', lineHeight: 1 },
   statLabel: { fontSize: '0.78rem', color: '#64748b', marginTop: '3px' },
   sectionTitle: { fontSize: '0.78rem', fontWeight: '700', color: '#64748b', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' },

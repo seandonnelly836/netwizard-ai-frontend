@@ -6,13 +6,14 @@ const TYPES = ['Bug', 'Suggestion', 'Question'];
 
 const S = {
   btn: {
-    position: 'fixed', bottom: '24px', right: '16px', zIndex: 900,
+    position: 'fixed', bottom: '24px', right: '12px', zIndex: 900,
     backgroundColor: '#1E3A8A', color: 'white', border: 'none',
-    padding: '10px 16px', borderRadius: '24px', cursor: 'pointer',
-    fontFamily: 'inherit', fontWeight: '600', fontSize: '0.85rem',
+    padding: '10px 14px', borderRadius: '24px', cursor: 'pointer',
+    fontFamily: 'inherit', fontWeight: '600', fontSize: '0.82rem',
     boxShadow: '0 4px 14px rgba(30,58,138,0.35)',
     display: 'flex', alignItems: 'center', gap: '6px',
     transition: 'opacity 0.15s, transform 0.15s',
+    maxWidth: 'calc(100vw - 24px)',
   },
   overlay: {
     position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.4)',
