@@ -6,9 +6,9 @@ const TYPES = ['Bug', 'Suggestion', 'Question'];
 
 const S = {
   btn: {
-    position: 'fixed', bottom: '24px', right: '24px', zIndex: 900,
+    position: 'fixed', bottom: '24px', right: '16px', zIndex: 900,
     backgroundColor: '#1E3A8A', color: 'white', border: 'none',
-    padding: '10px 18px', borderRadius: '24px', cursor: 'pointer',
+    padding: '10px 16px', borderRadius: '24px', cursor: 'pointer',
     fontFamily: 'inherit', fontWeight: '600', fontSize: '0.85rem',
     boxShadow: '0 4px 14px rgba(30,58,138,0.35)',
     display: 'flex', alignItems: 'center', gap: '6px',

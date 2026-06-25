@@ -1,0 +1,27 @@
+.nav-logout {
+  background-color: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.nav-logout:hover {
+  background-color: rgba(255,255,255,0.2);
+}
+
+@media (max-width: 640px) {
+  .nav-logout-text {
+    display: none;
+  }
+
+  .nav-links span, .nav-links a {
+    padding: 6px 7px !important;
+    font-size: 0.78rem !important;
+  }
+}

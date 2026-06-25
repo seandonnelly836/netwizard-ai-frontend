@@ -1,31 +1,25 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import '../navbar.css';
 
 const S = {
   nav: {
-    backgroundColor: '#1E3A8A', color: 'white', padding: '0 1.5rem',
+    backgroundColor: '#1E3A8A', color: 'white', padding: '0 1rem',
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
     height: '60px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-    position: 'sticky', top: 0, zIndex: 100,
+    position: 'sticky', top: 0, zIndex: 100, gap: '8px',
   },
-  logo: { fontWeight: '800', fontSize: '1.25rem', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '8px' },
+  logo: { fontWeight: '800', fontSize: '1.1rem', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 },
   logoAccent: { color: '#2DD4BF' },
-  links: { display: 'flex', gap: '4px' },
-  link: { color: 'rgba(255,255,255,0.7)', textDecoration: 'none', padding: '6px 10px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: '500', transition: 'all 0.15s' },
+  links: { display: 'flex', gap: '2px', flexShrink: 0 },
+  link: { color: 'rgba(255,255,255,0.7)', textDecoration: 'none', padding: '6px 10px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: '500', transition: 'all 0.15s', whiteSpace: 'nowrap' },
   activeLink: { color: 'white', backgroundColor: 'rgba(45,212,191,0.15)', borderBottom: '2px solid #2DD4BF' },
-  right: { display: 'flex', alignItems: 'center', gap: '10px' },
-  email: { fontSize: '0.82rem', color: 'rgba(255,255,255,0.65)' },
+  right: { display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 },
   avatar: {
-    width: '32px', height: '32px', borderRadius: '50%',
+    width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
     backgroundColor: '#2DD4BF', color: '#1E3A8A', fontWeight: '700',
     fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-  },
-  logoutBtn: {
-    backgroundColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)',
-    border: '1px solid rgba(255,255,255,0.2)', padding: '5px 12px',
-    borderRadius: '6px', cursor: 'pointer', fontFamily: 'inherit',
-    fontSize: '0.8rem', fontWeight: '500', transition: 'all 0.15s',
   },
 };
 
@@ -62,14 +56,9 @@ const Navbar = () => {
       {user ? (
         <div style={S.right}>
           <div style={S.avatar} title={user.email}>{initial}</div>
-          <button
-            style={S.logoutBtn}
-            onClick={handleLogout}
-            disabled={loggingOut}
-            onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'}
-            onMouseOut={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-          >
-            {loggingOut ? '…' : 'Sign out'}
+          <button className="nav-logout" onClick={handleLogout} disabled={loggingOut}>
+            <span className="nav-logout-text">{loggingOut ? '…' : 'Sign out'}</span>
+            {loggingOut ? '' : ''}
           </button>
         </div>
       ) : (
