@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../context/AuthContext';
+import '../dashboard.css';
 
 const INITIAL_NETWORKS = [
   { id: '1', name: 'Home Lab', device: 'MikroTik RBD52G', status: 'Active', ip: '192.168.88.1', uptime: '14d 6h' },
@@ -203,9 +204,9 @@ const Dashboard = () => {
 
   return (
     <div style={S.page}>
-      <div style={S.header}>
+      <div className="dash-header">
         <div>
-          <div style={S.greeting}>Good to see you, Sean 👋</div>
+          <div className="greeting">Good to see you, Sean 👋</div>
           <div style={S.sub}>Here's an overview of your managed networks.</div>
         </div>
         <button style={S.btnPrimary} onClick={() => navigate('/wizard')}
@@ -215,7 +216,7 @@ const Dashboard = () => {
         </button>
       </div>
 
-      <div style={S.statsRow}>
+      <div className="stats-row">
         {STATS.map((s, i) => (
           <div key={i} style={S.statCard}>
             <span style={S.statIcon}>{s.icon}</span>
@@ -228,7 +229,7 @@ const Dashboard = () => {
       </div>
 
       <div style={S.sectionTitle}>Your Networks</div>
-      <div style={S.grid}>
+      <div className="networks-grid">
         {networks.map(net => (
           <div key={net.id}
             style={{ ...S.card, boxShadow: hovered === net.id ? '0 8px 24px rgba(0,0,0,0.1)' : S.card.boxShadow, transform: hovered === net.id ? 'translateY(-2px)' : 'none' }}
