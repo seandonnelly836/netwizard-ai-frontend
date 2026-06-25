@@ -62,7 +62,7 @@ const S = {
   },
 };
 
-// Minimal markdown renderer for code blocks and bold
+// Markdown renderer — handles code blocks, headings, bold, line breaks
 function renderMarkdown(text) {
   const parts = text.split(/(```[\s\S]*?```)/g);
   return parts.map((part, i) => {
@@ -77,13 +77,31 @@ function renderMarkdown(text) {
         </pre>
       );
     }
-    // bold
-    const boldParts = part.split(/(\*\*[^*]+\*\*)/g);
+    // Process inline text: headings, bold, line breaks
     return (
       <span key={i}>
-        {boldParts.map((bp, j) =>
-          bp.startsWith('**') ? <strong key={j}>{bp.slice(2, -2)}</strong> : bp
-        )}
+        {part.split('\n').map((line, j, arr) => {
+          let content;
+          if (line.startsWith('### ')) {
+            content = <strong key={j} style={{ display: 'block', fontSize: '0.9rem', color: '#1E3A8A', margin: '10px 0 4px' }}>{line.slice(4)}</strong>;
+          } else if (line.startsWith('## ')) {
+            content = <strong key={j} style={{ display: 'block', fontSize: '1rem', color: '#1E3A8A', margin: '12px 0 4px' }}>{line.slice(3)}</strong>;
+          } else if (line.startsWith('# ')) {
+            content = <strong key={j} style={{ display: 'block', fontSize: '1.1rem', color: '#1E3A8A', margin: '14px 0 6px' }}>{line.slice(2)}</strong>;
+          } else {
+            // Handle bold inline
+            const boldParts = line.split(/(\*\*[^*]+\*\*)/g);
+            content = <span key={j}>{boldParts.map((bp, k) =>
+              bp.startsWith('**') ? <strong key={k}>{bp.slice(2, -2)}</strong> : bp
+            )}</span>;
+          }
+          return (
+            <span key={j}>
+              {content}
+              {j < arr.length - 1 && !line.startsWith('#') && <br />}
+            </span>
+          );
+        })}
       </span>
     );
   });
