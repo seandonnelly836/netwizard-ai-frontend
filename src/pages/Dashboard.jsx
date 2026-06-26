@@ -115,7 +115,7 @@ const Dashboard = () => {
   // Load networks from Supabase or fallback to localStorage
   useEffect(() => {
     const load = async () => {
-      if (supabase) {
+      if (supabase && user) {
         const { data, error } = await supabase.from('networks').select('*').order('created_at');
         if (!error && data) { setNetworks(data); setLoading(false); return; }
       }
@@ -127,7 +127,7 @@ const Dashboard = () => {
       setLoading(false);
     };
     load();
-  }, []);
+  }, [user]);
 
   // Persist to localStorage as backup
   useEffect(() => {
@@ -180,10 +180,10 @@ const Dashboard = () => {
     };
 
     if (editingId) {
-      if (supabase) await supabase.from('networks').update(payload).eq('id', editingId);
+      if (supabase && user) await supabase.from('networks').update(payload).eq('id', editingId);
       setNetworks(prev => prev.map(n => n.id === editingId ? { ...n, ...payload } : n));
     } else {
-      if (supabase) {
+      if (supabase && user) {
         const { data } = await supabase.from('networks').insert({ ...payload, uptime: '0m', user_id: user.id }).select().single();
         if (data) { setNetworks(prev => [...prev, data]); setModalOpen(false); return; }
       }
@@ -194,7 +194,7 @@ const Dashboard = () => {
 
   const removeNetwork = async (id, e) => {
     e.stopPropagation();
-    if (supabase) await supabase.from('networks').delete().eq('id', id);
+    if (supabase && user) await supabase.from('networks').delete().eq('id', id);
     setNetworks(prev => prev.filter(n => n.id !== id));
     setModalOpen(false);
   };
