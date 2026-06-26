@@ -103,8 +103,7 @@ const statusBadge = (status) => ({
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [networks, setNetworks] = useState([]);
+  const { user } = useAuth();  const [networks, setNetworks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hovered, setHovered] = useState(null);
   const [hoveredRemove, setHoveredRemove] = useState(null);
